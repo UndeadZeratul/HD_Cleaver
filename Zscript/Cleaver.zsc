@@ -146,7 +146,7 @@ class HDCleaver : HDCoreBaseMeleeWeapon {
 	}
 
     override double getWeaponAttackFlags() {
-        return HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_RECOIL_ATTACKEE;
+        return HDCMW_DO_HEADSHOT|HDCMW_DO_PUFF|HDCMW_DO_WINDOWBUST|HDCMW_RECOIL_ATTACKEE;
     }
 
     override double getWeaponAttackHeight() {
