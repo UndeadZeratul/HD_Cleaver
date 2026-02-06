@@ -156,6 +156,27 @@ class HDCleaver : HDCoreBaseMeleeWeapon {
 		;
 	}
 
+	override inventory createTossable(int amt) {
+		let thrown = super.createTossable(amt);
+
+		if (thrown) {
+			bool throw = (owner && owner.player && owner.player.readyweapon == self && owner.player.cmd.buttons&BT_ZOOM);
+
+			// Reset these in case they were set from being thrown
+			thrown.bBOUNCEONWALLS = false;
+			thrown.bBOUNCEONFLOORS = false;
+			thrown.bALLOWBOUNCEONACTORS = false;
+
+			thrown.bFORCEXYBILLBOARD = !throw;
+			thrown.bROLLSPRITE = !throw;
+			thrown.bROLLCENTER = !throw;
+
+			thrown.bFLATSPRITE = throw;
+		}
+
+		return thrown;
+	}
+
 	override double getWeaponAttackHeight() {
 		return owner.height - 12;
 	}
@@ -348,14 +369,10 @@ class HDCleaver : HDCoreBaseMeleeWeapon {
 			goto nope;
 
 		spawn:
-			CLVR X 0 A_JumpIf(invoker.bNOEXTREMEDEATH, "spawn2");
-			CLVR X 1;
+			CLVR X 1 A_JumpIf(invoker.bMISSILE, "spawn2");
 			loop;
 		spawn2:
-			CLVR Y 1 {
-				A_Setpitch(25 + pitch);
-				// A_SetRoll(80);
-			}
+			CLVR Y 1 A_SetPitch(25 + pitch);
 			loop;
 		spawn3:
 			CLVR Y 1;
@@ -373,77 +390,14 @@ class HDCleaver : HDCoreBaseMeleeWeapon {
 					
 					if (
 						pos.z - tracer.pos.z > tracer.height * 0.8
-						&& (
-							!hdt
-							||(
-								!hdt.bnovitalshots
-								&& !hdt.bHEADLESS
-							)
-						)
+						&& (!hdt || (!hdt.bnovitalshots && !hdt.bHEADLESS))
 					) {
-						if (hd_debug) A_Log("HEAD SHOT");
+        				HDCore.log('Slogstin.HDCleaver', LOGGING_DEBUG, "HEAD SHOT");
 						bPIERCEARMOR = true;
 						damageMobj(tracer, self, 75, 'slashing');
 					}
 					
 					HDBleedingWound.inflict(tracer, 60);
-				}
-			}
-			goto spawn3;
-
-		Xdeath:
-			CLVR Y 1 {
-				invoker.bJUSTCHUCKED = false;
-				if (tracer) {
-				
-					let hdt = HDMobBase(tracer);
-					
-					if (
-						pos.z - tracer.pos.z > tracer.height * 0.8
-						&& (
-							!hdt
-							|| (
-								!hdt.bNOVITALSHOTS
-								&& !hdt.bHEADLESS
-							)
-						)
-					) {
-						if (hd_debug) A_Log("HEAD SHOT");
-						bPIERCEARMOR = true;
-						damageMobj(tracer, self, 150, 'slashing');
-					}
-					
-					HDBleedingWound.inflict(tracer, 120);
-				}
-			}
-			goto spawn3;
-
-		Crash:
-			CLVR Y 1 {
-				invoker.bJUSTCHUCKED = false;
-				if (tracer) {
-				
-					let hdt = HDMobBase(tracer);
-					
-					if (
-						pos.z - tracer.pos.z > tracer.height * 0.8
-						&& (
-							!hdt
-							|| (
-								!hdt.bNOVITALSHOTS
-								&& !hdt.bHEADLESS
-							)
-						)
-					) {
-						if (hd_debug) A_Log("HEAD SHOT");
-						bPIERCEARMOR = true;
-						damageMobj(tracer, self, 75, "slashing");
-					}
-
-					HDBleedingWound.inflict(tracer, 35, 7);
-
-					// FIXME: replace SNDINFO entry
-					if (!tracer.bNOBLOOD) A_StartSound("weapons/kharoncut", CHAN_WEAPON, volume: 0.6);
 				}
 			}
 			goto spawn3;
